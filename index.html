@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Varun ❤️ Chaithanya</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg1: #0a0a0a; --bg2: #1a001a;
+      --text: #ff80bf; --accent: #ff3399; --shadow: rgba(255,51,153,0.6);
+    }
+    [data-theme="day"] {
+      --bg1: #fff0f6; --bg2: #ffe6f0;
+      --text: #701a40; --accent: #b21040; --shadow: rgba(178,16,64,0.4);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Dancing Script', cursive;
+      background: var(--bg1); color: var(--text);
+      overflow:hidden; text-align:center;
+      width:100vw; height:100vh; position:relative;
+      transition:background .8s;
+    }
+    #progressBar {
+      position:fixed; top:0; left:0; height:4px;
+      background:var(--accent); width:0; z-index:20;
+    }
+    canvas {
+      position:absolute; top:0; left:0;
+      width:100%; height:100%; pointer-events:none;
+    }
+    #container {
+      position:relative; z-index:10;
+      margin:5% auto 0; width:90%; max-width:400px;
+      background:rgba(255,255,255,0.05); border:2px solid var(--accent);
+      border-radius:20px; padding:2rem;
+      box-shadow:0 0 20px var(--shadow);
+      perspective:1000px; transform-style:preserve-3d;
+      transition:transform .1s;
+    }
+    h1 { font-size:2rem; color:var(--accent); margin-bottom:.5rem; }
+    #quote {
+      font-weight:bold; margin-bottom:1rem;
+      opacity:0; animation:fadeIn 2s .5s forwards;
+    }
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .typewriter {
+      min-height:6em; font-size:1.1rem; line-height:1.4;
+      margin-bottom:1rem; position:relative;
+    }
+    .typewriter::after {
+      content:""; position:absolute; right:0; width:2px; height:1em;
+      background:var(--accent); animation:blink .7s step-end infinite;
+    }
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    #loveMeter-container {
+      display:flex; align-items:center; gap:10px; margin:1rem 0;
+    }
+    input[type=range]{width:100%; accent-color:var(--accent);}
+    .controls{ display:flex; flex-direction:column; gap:10px; }
+    button {
+      padding:12px; font-size:1rem;
+      background:var(--accent); color:#fff;
+      border:none; border-radius:20px;
+      cursor:pointer; transition:transform .2s;
+      width:100%;
+    }
+    button:hover{transform:scale(1.05)}
+    #shareBtn{background:transparent; border:2px solid var(--accent);}
+    #secret,#replyBox{opacity:0;transition:opacity .5s;margin-top:1rem;}
+    #replyBox textarea{
+      width:100%; height:80px; border-radius:10px; padding:8px;
+      font-family:inherit; font-size:1rem;
+    }
+    #themeToggle{
+      position:fixed; top:10px; right:10px;
+      background:none; border:2px solid var(--accent);
+      border-radius:50%; width:36px; height:36px;
+      color:var(--accent); cursor:pointer; z-index:15;
+      font-size:1.2rem;
+    }
+    @media(max-width:400px){
+      h1{font-size:1.5rem} .typewriter{font-size:.95rem}
+      button{font-size:.9rem;padding:10px}
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div id="progressBar"></div>
+  <canvas id="starfield"></canvas>
+  <canvas id="hearts"></canvas>
+  <canvas id="fireworks"></canvas>
+  <canvas id="vis"></canvas>
+
+  <button id="themeToggle">☀️</button>
+
+  <div id="container">
+    <h1>Varun ❤️ Chaithanya</h1>
+    <div id="quote"></div>
+    <div class="typewriter" id="letter"></div>
+
+    <div id="loveMeter-container">
+      <label>Love-o-meter:</label>
+      <input type="range" id="loveMeter" min="0" max="100" value="50">
+    </div>
+
+    <div class="controls">
+      <button id="yesBtn">Yes</button>
+      <button id="absBtn">Absolutely Yes</button>
+      <button id="forvBtn">Forever Yes</button>
+      <button id="shareBtn">Share ❤️</button>
+    </div>
+
+    <div id="secret"><strong>✨ Chaithanya, will you be mine forever? ✨</strong></div>
+    <div id="replyBox">
+      <textarea id="reply" placeholder="Type your reply..."></textarea>
+    </div>
+  </div>
+
+  <!-- Background music & speech -->
+  <audio id="bgMusic" loop hidden>
+    <source src="data:audio/mp3;base64,//uQxAAAA...YOUR_BASE64_HERE..." type="audio/mp3">
+  </audio>
+
+  <script>
+  // --- Texts & Typewriter/Progress ---
+  const forgive = `Dear Chaithanya, I’m sorry for any hurt I’ve caused. Please forgive me.`;
+  const love    = `From the first "hello," my world found its melody—played only for you. Every heartbeat is code for us.`;
+  let stage=0, idx=0;
+  const letterEl = document.getElementById('letter');
+  function typeChar(){
+    const txt = stage===0 ? forgive : love;
+    if(idx<txt.length){
+      letterEl.textContent += txt[idx++];
+      document.getElementById('progressBar').style.width = (idx/txt.length*100)+'%';
+      setTimeout(typeChar, 40);
+    } else if(stage===0){
+      setTimeout(()=>{ stage=1; idx=0; letterEl.textContent=''; typeChar(); },1000);
+    } else {
+      document.querySelector('.controls').style.opacity=1;
+      document.getElementById('replyBox').style.opacity=1;
+    }
+  }
+  setTimeout(typeChar,1000);
+
+  // --- Speech & Music unlock on first click/tap ---
+  const bg = document.getElementById('bgMusic');
+  function unlockAll(){
+    bg.play().catch(()=>{});
+    speechSynthesis.speak(new SpeechSynthesisUtterance(forgive));
+    setTimeout(()=> speechSynthesis.speak(new SpeechSynthesisUtterance(love)), (forgive.length*40)+1500);
+    window.removeEventListener('click',unlockAll);
+  }
+  window.addEventListener('click', unlockAll, {once:true});
+
+  // --- Quotes Carousel ---
+  const quotes = [
+    "You’re my favorite bug-free function.",
+    "printf(\"I adore you\");",
+    "In my heart’s code, you’re the main().",
+    "Our love compiles flawlessly."
+  ];
+  let qi=0;
+  setInterval(()=>{
+    const q=document.getElementById('quote');
+    q.style.opacity=0;
+    setTimeout(()=>{ q.textContent=quotes[qi++%quotes.length]; q.style.opacity=1; },500);
+  },5000);
+
+  // --- Starfield Background ---
+  const sf=document.getElementById('starfield'), sCtx=sf.getContext('2d'), stars=[];
+  function resize(){[sf,hearts,fireworks,vis].forEach(c=>{c.width=innerWidth; c.height=innerHeight;}); stars.length=0;
+    for(let i=0;i<200;i++) stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,size:Math.random()*1.5,speed:0.2+Math.random()*0.3});
+  }
+  function drawStars(){
+    sCtx.clearRect(0,0,sf.width,sf.height);
+    stars.forEach(s=>{ s.y+=s.speed; if(s.y>sf.height) s.y=0; sCtx.fillStyle="#fff"; sCtx.fillRect(s.x,s.y,s.size,s.size); });
+    requestAnimationFrame(drawStars);
+  }
+  window.addEventListener('resize',resize);
+  resize(); drawStars();
+
+  // --- Hearts Rising ---
+  const hc=document.getElementById('hearts'), hCtx=hc.getContext('2d'), heartsArr=[];
+  class Heart{ constructor(){this.x=Math.random()*hc.width; this.y=hc.height; this.sz=10+Math.random()*20; this.sp=0.5+Math.random(); this.o=1;}
+    update(){this.y-=this.sp; this.o-=0.002;}
+    draw(){hCtx.globalAlpha=this.o; hCtx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      hCtx.beginPath(); let d=this.sz;
+      hCtx.moveTo(this.x,this.y);
+      hCtx.bezierCurveTo(this.x,this.y-d/2,this.x-d/2,this.y-d/2,this.x-d/2,this.y);
+      hCtx.bezierCurveTo(this.x-d/2,this.y+d/2,this.x,this.y+d,this.x,this.y+d);
+      hCtx.bezierCurveTo(this.x,this.y+d,this.x+d/2,this.y+d/2,this.x+d/2,this.y);
+      hCtx.bezierCurveTo(this.x+d/2,this.y-d/2,this.x,this.y-d/2,this.x,this.y);
+      hCtx.closePath(); hCtx.fill(); hCtx.globalAlpha=1;
+    }
+  }
+  function drawHearts(){hCtx.clearRect(0,0,hc.width,hc.height);
+    if(heartsArr.length<50) heartsArr.push(new Heart());
+    heartsArr.forEach((h,i)=>{h.update();h.draw(); if(h.o<=0) heartsArr.splice(i,1);});
+    requestAnimationFrame(drawHearts);
+  }
+  drawHearts();
+
+  // --- Fireworks Finale ---
+  const fw=document.getElementById('fireworks'), fCtx=fw.getContext('2d');
+  function triggerFireworks(){
+    for(let i=0;i<20;i++){
+      const x=fw.width/2, y=fw.height/2, r=2+Math.random()*3;
+      fCtx.beginPath(); fCtx.arc(x,y,r,0,2*Math.PI);
+      fCtx.fillStyle=`rgba(255,255,255,${0.7+Math.random()*0.3})`; fCtx.fill();
+    }
+    setTimeout(()=>fCtx.clearRect(0,0,fw.width,fw.height),600);
+  }
+
+  // --- Audio Visualizer ---
+  const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  const analyser=audioCtx.createAnalyser();
+  const src=audioCtx.createMediaElementSource(bg);
+  src.connect(analyser); analyser.connect(audioCtx.destination);
+  const vis=document.getElementById('vis'), vCtx=vis.getContext('2d');
+  analyser.fftSize=64;
+  const bufLength=analyser.frequencyBinCount, dataArray=new Uint8Array(bufLength);
+  function drawVis(){
+    requestAnimationFrame(drawVis);
+    analyser.getByteFrequencyData(dataArray);
+    vCtx.clearRect(0,0,vis.width,vis.height);
+    const barWidth = vis.width / bufLength;
+    dataArray.forEach((val,i)=>{
+      const barHeight = val/255 * vis.height * 0.3;
+      vCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+      vCtx.fillRect(i*barWidth,vis.height-barHeight,barWidth-2,barHeight);
+    });
+  }
+  drawVis();
+
+  // --- Heart Trail & Parallax Tilt ---
+  document.body.addEventListener('mousemove',e=>{
+    const d=document.createElement('div'); d.textContent='❤';
+    d.style.cssText=`position:absolute;left:${e.clientX}px;top:${e.clientY}px;pointer-events:none;
+      color:${getComputedStyle(document.documentElement).getPropertyValue('--accent')};`;
+    document.body.append(d); setTimeout(()=>d.remove(),800);
+  });
+  const cont=document.getElementById('container');
+  cont.addEventListener('mousemove',e=>{
+    const x=(e.clientX/innerWidth-0.5)*20, y=(e.clientY/innerHeight-0.5)*20;
+    cont.style.transform=`rotateY(${x}deg) rotateX(${-y}deg)`;
+  });
+
+  // --- Buttons & Konami Easter Egg ---
+  ['yesBtn','absBtn','forvBtn'].forEach(id=>{
+    document.getElementById(id).onclick=()=>{
+      document.getElementById('secret').style.opacity=1;
+      triggerFireworks();
+    };
+  });
+  // Konami: ↑↑↓↓←→←→BA
+  const code=[38,38,40,40,37,39,37,39,66,65], input=[];
+  window.addEventListener('keydown',e=>{
+    input.push(e.keyCode);
+    if(input.slice(-code.length).toString()===code.toString()){
+      alert("💖 KONAMI CODE UNLOCKED 🎉 Extra love for you, Chaithanya!");
+    }
+  });
+
+  // --- Reply Save ---
+  const reply=document.getElementById('reply');
+  reply.value=localStorage.getItem('reply')||'';
+  reply.addEventListener('input',()=>localStorage.setItem('reply',reply.value));
+
+  // --- Love-o-Meter Slider ---
+  document.getElementById('loveMeter').oninput=function(){
+    const pct=this.value/100;
+    document.body.style.background=`linear-gradient(135deg,
+      rgba(10,10,10,${1-pct}),rgba(26,0,26,${1-pct}))`;
+  };
+
+  // --- Theme Toggle ---
+  document.getElementById('themeToggle').onclick=function(){
+    const day=document.documentElement.getAttribute('data-theme')==='day';
+    document.documentElement.setAttribute('data-theme',day?'':'day');
+    this.textContent = day?'☀️':'🌙';
+  };
+
+  // --- Web Share / Fallback ---
+  document.getElementById('shareBtn').onclick=async()=>{
+    const data={title:'Love Letter',text:love,url:location.href};
+    if(navigator.share) await navigator.share(data).catch(()=>{});
+    else { navigator.clipboard.writeText(location.href); alert('Link copied.'); }
+  };
+  </script>
+</body>
+</html>
